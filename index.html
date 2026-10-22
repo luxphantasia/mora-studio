@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Mora Studio: a phone app for writing lyrics and melody together, screen by screen.">
+<meta property="og:title" content="Mora Studio, screen by screen">
+<meta property="og:image" content="shots/tracks.png">
+</head>
+<body>
+<title>Mora Studio Tour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one area of the app at a time, picked from the tabs: what it
+   does and can do beside a player that walks through its real screens
+   (stills and recorded motion) and then moves on to the next area by
+   itself. Without script every area and screen shows, one after another. */
+:root{
+  --bg:#f2f4f8; --surface:#ffffff; --fg:#161b26; --muted:#5b6578; --line:#d6dce6;
+  --accent:#4b5ff0; --note:#e8703c; --frame:#0b0e14;
+  --display:"Zen Kaku Gothic New","Hiragino Sans",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e121a; --surface:#161c27; --fg:#e6eaf1; --muted:#97a2b4; --line:#273041;
+  --accent:#7d8fff; --note:#ff9466; --frame:#05070b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e121a; --surface:#161c27; --fg:#e6eaf1; --muted:#97a2b4; --line:#273041;
+  --accent:#7d8fff; --note:#ff9466; --frame:#05070b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--body);padding:0 16px}
+main{max-width:1180px;margin:0 auto;padding-block:40px 72px;display:grid;gap:36px}
+h1,h2{font-family:var(--display);font-weight:700;text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(34px,6vw,56px);letter-spacing:-.01em}
+h1 .mora{color:var(--note)}
+h2{font-size:clamp(24px,3.4vw,32px)}
+p{margin:0}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+header{display:grid;gap:16px}
+.lede{color:var(--muted);font-size:18px;max-width:62ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px 16px;font:500 13px var(--mono);color:var(--muted)}
+.meta b{color:var(--fg);font-weight:500}
+nav{position:sticky;top:0;z-index:5;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
+  padding:12px 16px;margin:0 -16px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px)}
+nav::-webkit-scrollbar{display:none}
+nav a{flex:none;font-size:14px;color:var(--fg);text-decoration:none;padding:6px 14px;border:1px solid var(--line);border-radius:99px}
+nav a:hover,nav a:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+nav a[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.progress{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--note);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+section{display:grid;gap:24px 40px;min-width:0;scroll-margin-top:72px;align-items:start}
+@media (min-width:900px){section{grid-template-columns:minmax(260px,1fr) minmax(0,2fr)}}
+section[hidden]{display:none}
+.text{display:grid;gap:20px;min-width:0}
+.head{display:grid;gap:8px}
+.intro{color:var(--muted);max-width:62ch}
+.player{display:grid;gap:12px;min-width:0}
+.bars{display:flex;gap:6px}
+.bars span{flex:1;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.bars i{display:block;height:100%;width:0;background:var(--accent)}
+.stage{position:relative;display:grid;min-width:0}
+.stage>figure{grid-area:1/1;animation:in .5s ease both}
+.stage>figure[hidden]{display:none}
+@keyframes in{from{opacity:0;transform:translateY(8px) scale(.99)}}
+.stage button{position:absolute;top:0;bottom:48px;width:30%;border:0;background:none;cursor:pointer;padding:0;z-index:2}
+.stage::after{content:"";position:absolute;inset:0 0 48px;z-index:1}
+.stage video,.stage img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;pointer-events:none}
+.back{left:0}.fwd{right:0}
+html:not(.js) .stage>figure[hidden]{display:grid}
+html:not(.js) .bars,html:not(.js) .stage button{display:none}
+.next{justify-self:start;font-size:14px;color:var(--accent);text-decoration:none}
+.next:hover{text-decoration:underline}
+.js .next{display:inline}
+html:not(.js) .next{display:none}
+figure{margin:0;display:grid;gap:10px;min-width:0;align-content:start}
+.frame{background:var(--frame);border-radius:22px;padding:10px;box-shadow:0 18px 40px -24px rgba(0,0,0,.6)}
+.frame img,.frame video,.pending{display:block;width:100%;aspect-ratio:20/9;border-radius:13px;max-width:100%;object-fit:cover;background:#000}
+.upright .frame{justify-self:center;width:min(250px,100%)}
+.upright .frame img,.upright .frame video,.upright .pending{aspect-ratio:9/20}
+.pending{display:grid;place-items:center;background:repeating-linear-gradient(135deg,#141a24 0 14px,#18202c 14px 28px);color:#8b96a8;font:500 13px var(--mono)}
+figcaption{color:var(--muted);font-size:14px;max-width:70ch}
+.feats{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.feats li{position:relative;padding-left:18px;font-size:15px;min-width:0}
+.feats li::before{content:"";position:absolute;left:0;top:.62em;width:8px;height:4px;border-radius:2px;background:var(--note)}
+footer{color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:20px}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+</style>
+<main>
+<header>
+  <p class="eyebrow">Feature tour</p>
+  <h1>Mora Studio, <span class="mora">screen by screen</span></h1>
+  <p class="lede">Write lyrics and melody together on your phone, and hear them sung. Every picture below is the app itself, with its demo song.</p>
+  <div class="meta"><span>Build <b>v0.79</b></span><span>Android, landscape</span><span>Lyrics upright</span></div>
+  <nav aria-label="Areas"><a href="#tracks">Tracks</a><a href="#markers">Markers</a><a href="#automation">Automation</a><a href="#pianoroll">Piano roll</a><a href="#singing">Singing</a><a href="#lyrics">Lyrics</a><a href="#mixer">Mixer</a><a href="#effects">Effects</a><a href="#export">Export</a><a href="#project">History and settings</a></nav>
+  
+</header>
+
+<section id="tracks" data-area>
+  <div class="text">
+    <div class="head"><p class="eyebrow">Arrange</p><h2>Tracks</h2><p class="intro">Your whole song at a glance: a row for each singer and each audio track, laid out bar by bar.</p></div>
+    <ul class="feats"><li>Tap an empty row to add a part, drag to move it, pull either end to resize</li><li>Trim a part from either side without losing what&#x27;s inside</li><li>Hold the ruler to loop a bar, drag across to loop more</li><li>Room before bar 1 for a pickup or a count-in</li><li>Snap from whole bars down to 1/32 and triplets, or let it follow your zoom</li><li>Pinch to zoom each way, flick to scroll, and pull past the edges with a gentle bounce</li></ul>
+    <a class="next" href="#markers">Next: Markers →</a>
+  </div>
+  <div class="player"><div class="bars"><span><i></i></span><span><i></i></span><span><i></i></span></div><div class="stage"><figure class="slide"><div class="frame"><video data-src="shots/tracks.mp4" poster="shots/tracks.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="A song playing in Tracks: two singers and the band, every part showing its melody and words, the view following along."></video></div><figcaption>A song playing in Tracks: two singers and the band, every part showing its melody and words, the view following along.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/audio_loading.mp4" poster="shots/audio_loading.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Drop in a backing track and it&#x27;s ready to place right away."></video></div><figcaption>Drop in a backing track and it&#x27;s ready to place right away.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/audio_fades.mp4" poster="shots/audio_fades.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Fade a clip in or out and set its level with a drag, right on the clip."></video></div><figcaption>Fade a clip in or out and set its level with a drag, right on the clip.</figcaption></figure><button class="back" type="button" aria-label="Previous screen"></button><button class="fwd" type="button" aria-label="Next screen"></button></div></div>
+</section>
+<section id="markers" data-area>
+  <div class="text">
+    <div class="head"><p class="eyebrow">Arrange</p><h2>Markers</h2><p class="intro">Change the time signature or key mid-song, or name your sections, right on the ruler.</p></div>
+    <ul class="feats"><li>One marker can change the time signature, the key, or just name a section</li><li>The current signature and key always show at the left edge</li><li>Drag a marker to move it</li></ul>
+    <a class="next" href="#automation">Next: Automation →</a>
+  </div>
+  <div class="player"><div class="bars"><span><i></i></span></div><div class="stage"><figure class="slide"><div class="frame"><video data-src="shots/markers.mp4" poster="shots/markers.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Double-tap the ruler and a marker drops where the playhead is."></video></div><figcaption>Double-tap the ruler and a marker drops where the playhead is.</figcaption></figure><button class="back" type="button" aria-label="Previous screen"></button><button class="fwd" type="button" aria-label="Next screen"></button></div></div>
+</section>
+<section id="automation" data-area>
+  <div class="text">
+    <div class="head"><p class="eyebrow">Arrange</p><h2>Automation</h2><p class="intro">Shape tempo, volume, pan and any effect setting over the course of the song.</p></div>
+    <ul class="feats"><li>Pick what to automate from one menu</li><li>Tap to add a point, drag to move it, and let points glide into the next</li><li>Clear or hide a lane with one tap</li></ul>
+    <a class="next" href="#pianoroll">Next: Piano roll →</a>
+  </div>
+  <div class="player"><div class="bars"><span><i></i></span></div><div class="stage"><figure class="slide"><div class="frame"><video data-src="shots/automation.mp4" poster="shots/automation.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Tempo, volume and an effect setting, each drawn as its own lane."></video></div><figcaption>Tempo, volume and an effect setting, each drawn as its own lane.</figcaption></figure><button class="back" type="button" aria-label="Previous screen"></button><button class="fwd" type="button" aria-label="Next screen"></button></div></div>
+</section>
+<section id="pianoroll" data-area>
+  <div class="text">
+    <div class="head"><p class="eyebrow">Write</p><h2>Piano roll</h2><p class="intro">Write the melody with your fingers, with each note&#x27;s syllable printed right on it.</p></div>
+    <ul class="feats"><li>Tap to place a note, drag to move it, pull its end to change its length</li><li>Every note sings as you tap or drag it, so you hear the melody as you write</li><li>Hold for a selection box; copy, cut and paste whole phrases</li><li>Mark は, へ or を to be sung as spoken (わ, え, お)</li><li>Play the keyboard to try out a pitch</li></ul>
+    <a class="next" href="#singing">Next: Singing →</a>
+  </div>
+  <div class="player"><div class="bars"><span><i></i></span><span><i></i></span></div><div class="stage"><figure class="slide"><div class="frame"><video data-src="shots/pianoroll.mp4" poster="shots/pianoroll.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Tap a note and it sings, drag it to a new pitch, then play the phrase back."></video></div><figcaption>Tap a note and it sings, drag it to a new pitch, then play the phrase back.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/kana.mp4" poster="shots/kana.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Double-tap a note and type its syllable with the flick pad; it moves on to the next note by itself."></video></div><figcaption>Double-tap a note and type its syllable with the flick pad; it moves on to the next note by itself.</figcaption></figure><button class="back" type="button" aria-label="Previous screen"></button><button class="fwd" type="button" aria-label="Next screen"></button></div></div>
+</section>
+<section id="singing" data-area>
+  <div class="text">
+    <div class="head"><p class="eyebrow">Sing</p><h2>Singing</h2><p class="intro">Pick a voice and your melody sings, right on your phone.</p></div>
+    <ul class="feats"><li>Add your own voicebanks and choose one per singer</li><li>Download an AI voice right in the app: it sings with its own natural pitch and timing, right on your phone</li><li>Fine-tune an AI voice: quality, natural or drawn pitch, expressiveness, and the sounds of any note</li><li>Change a note and only that phrase is redone, so you&#x27;re never kept waiting</li><li>Long vowels (ー) and particles are sung naturally</li><li>Hear a guide tone wherever the voice isn&#x27;t ready yet</li></ul>
+    <a class="next" href="#lyrics">Next: Lyrics →</a>
+  </div>
+  <div class="player"><div class="bars"><span><i></i></span></div><div class="stage"><figure class="slide"><div class="frame"><video data-src="shots/rendering.mp4" poster="shots/rendering.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="As the voice gets ready, each part fills back in with color from left to right."></video></div><figcaption>As the voice gets ready, each part fills back in with color from left to right.</figcaption></figure><button class="back" type="button" aria-label="Previous screen"></button><button class="fwd" type="button" aria-label="Next screen"></button></div></div>
+</section>
+<section id="lyrics" data-area>
+  <div class="text">
+    <div class="head"><p class="eyebrow">Write</p><h2>Lyrics</h2><p class="intro">Write the words like in a notes app, and see at a glance where they fit the melody.</p></div>
+    <ul class="feats"><li>Readings for kanji filled in for you, and easy to change</li><li>Particles are spotted as you write: 私は sings わ, 空へ sings え</li><li>Type in romaji or kana with suggestions that fit the phrase</li><li>Every line shows whether it fits its phrase</li><li>Write the words first and place them later, or fill in the melody&#x27;s phrases</li></ul>
+    <a class="next" href="#mixer">Next: Mixer →</a>
+  </div>
+  <div class="player"><div class="bars"><span><i></i></span></div><div class="stage"><figure class="slide upright"><div class="frame"><video data-src="shots/lyrics.mp4" poster="shots/lyrics.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Each line sits on the phrase it&#x27;s sung to, with readings above the kanji and a syllable count."></video></div><figcaption>Each line sits on the phrase it&#x27;s sung to, with readings above the kanji and a syllable count.</figcaption></figure><button class="back" type="button" aria-label="Previous screen"></button><button class="fwd" type="button" aria-label="Next screen"></button></div></div>
+</section>
+<section id="mixer" data-area>
+  <div class="text">
+    <div class="head"><p class="eyebrow">Mix</p><h2>Mixer</h2><p class="intro">A full mixer in your pocket: a channel for every singer and track, buses, groups and the master.</p></div>
+    <ul class="feats"><li>Hold a channel&#x27;s name to move it; drag effects between slots and channels</li><li>As many effects per channel as you like</li><li>Solo tracks or whole buses</li><li>Group channels to move their volume, pan, mute and solo together</li><li>Save snapshots of the whole mix, and undo any change</li><li>Studio-grade sound that stays light on your battery</li></ul>
+    <a class="next" href="#effects">Next: Effects →</a>
+  </div>
+  <div class="player"><div class="bars"><span><i></i></span><span><i></i></span><span><i></i></span></div><div class="stage"><figure class="slide"><div class="frame"><video data-src="shots/mixer.mp4" poster="shots/mixer.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="The mixer as the song plays: effects, sends, faders and live meters for every channel."></video></div><figcaption>The mixer as the song plays: effects, sends, faders and live meters for every channel.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/fx_picker.mp4" poster="shots/fx_picker.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Add an effect or a send from a pop-out right beside the button, with what each one does."></video></div><figcaption>Add an effect or a send from a pop-out right beside the button, with what each one does.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/performance.mp4" poster="shots/performance.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Tap the CPU meter to see how hard your phone is working, now and over the last two minutes."></video></div><figcaption>Tap the CPU meter to see how hard your phone is working, now and over the last two minutes.</figcaption></figure><button class="back" type="button" aria-label="Previous screen"></button><button class="fwd" type="button" aria-label="Next screen"></button></div></div>
+</section>
+<section id="effects" data-area>
+  <div class="text">
+    <div class="head"><p class="eyebrow">Mix</p><h2>Effects</h2><p class="intro">Eight built-in effects, each with presets, A/B compare and undo.</p></div>
+    <ul class="feats"><li>EQ bands that react to the music</li><li>Factory presets for every effect, and save your own</li><li>Flip between two settings to compare, saved with the song</li></ul>
+    <a class="next" href="#export">Next: Export →</a>
+  </div>
+  <div class="player"><div class="bars"><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span></div><div class="stage"><figure class="slide"><div class="frame"><video data-src="shots/eq.mp4" poster="shots/eq.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Equalizer: drag a band and hear it change. Up to 24 bands, each able to work on one side or the middle of the mix."></video></div><figcaption>Equalizer: drag a band and hear it change. Up to 24 bands, each able to work on one side or the middle of the mix.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/comp.mp4" poster="shots/comp.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Compressor: four big knobs for the essentials, with the fine settings just below."></video></div><figcaption>Compressor: four big knobs for the essentials, with the fine settings just below.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/comp_graph.mp4" poster="shots/comp_graph.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Watch the compressor work as the song plays, with the knobs a swipe away."></video></div><figcaption>Watch the compressor work as the song plays, with the knobs a swipe away.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/reverb.mp4" poster="shots/reverb.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Reverb: choose a space, shape how it fades across the frequencies, and blend it in."></video></div><figcaption>Reverb: choose a space, shape how it fades across the frequencies, and blend it in.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/sat.mp4" poster="shots/sat.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Saturation: warmth and grit from tube, tape or clip."></video></div><figcaption>Saturation: warmth and grit from tube, tape or clip.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/exciter.mp4" poster="shots/exciter.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Exciter: extra presence and air."></video></div><figcaption>Exciter: extra presence and air.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/limiter.mp4" poster="shots/limiter.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Limiter: loud and clean, with no clipping."></video></div><figcaption>Limiter: loud and clean, with no clipping.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/delay.mp4" poster="shots/delay.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Delay: echoes in time with the song, with a filter and character to taste."></video></div><figcaption>Delay: echoes in time with the song, with a filter and character to taste.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/halate.mp4" poster="shots/halate.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Halate, only in Mora: the voice breathes out into a shimmering cloud of itself."></video></div><figcaption>Halate, only in Mora: the voice breathes out into a shimmering cloud of itself.</figcaption></figure><button class="back" type="button" aria-label="Previous screen"></button><button class="fwd" type="button" aria-label="Next screen"></button></div></div>
+</section>
+<section id="export" data-area>
+  <div class="text">
+    <div class="head"><p class="eyebrow">Share</p><h2>Export</h2><p class="intro">Share the finished song, or take it into another app.</p></div>
+    <ul class="feats"><li>Pick the quality you want</li><li>Export the whole song or just the loop</li><li>Players and stores show your song&#x27;s title and artist</li><li>Files keep your song&#x27;s name, in Japanese too</li></ul>
+    <a class="next" href="#project">Next: History and settings →</a>
+  </div>
+  <div class="player"><div class="bars"><span><i></i></span><span><i></i></span></div><div class="stage"><figure class="slide"><div class="frame"><video data-src="shots/export.mp4" poster="shots/export.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Export as audio in all the common formats, as a Mora song, as MIDI, or for other vocal synth editors."></video></div><figcaption>Export as audio in all the common formats, as a Mora song, as MIDI, or for other vocal synth editors.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/song_details.mp4" poster="shots/song_details.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Add a title, artist, album and more once; every export carries them."></video></div><figcaption>Add a title, artist, album and more once; every export carries them.</figcaption></figure><button class="back" type="button" aria-label="Previous screen"></button><button class="fwd" type="button" aria-label="Next screen"></button></div></div>
+</section>
+<section id="project" data-area>
+  <div class="text">
+    <div class="head"><p class="eyebrow">Everywhere</p><h2>History and settings</h2><p class="intro">Every change is saved as you go, and you can always step back.</p></div>
+    <ul class="feats"><li>Your songs are kept safe, even if you reinstall the app</li><li>Keep mixer changes out of your undo list if you like</li><li>Pause returns to where you started, or resumes, as you choose</li></ul>
+    <a class="next" href="#tracks">Next: Tracks →</a>
+  </div>
+  <div class="player"><div class="bars"><span><i></i></span><span><i></i></span><span><i></i></span></div><div class="stage"><figure class="slide"><div class="frame"><video data-src="shots/projects.mp4" poster="shots/projects.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Your songs, each with a little picture of it. They save themselves on every change."></video></div><figcaption>Your songs, each with a little picture of it. They save themselves on every change.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/history.mp4" poster="shots/history.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Undo history: tap any earlier step to go back to it."></video></div><figcaption>Undo history: tap any earlier step to go back to it.</figcaption></figure><figure class="slide" hidden><div class="frame"><video data-src="shots/settings.mp4" poster="shots/settings.jpg" muted playsinline disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-label="Settings, with optional add-ons and About."></video></div><figcaption>Settings, with optional add-ons and About.</figcaption></figure><button class="back" type="button" aria-label="Previous screen"></button><button class="fwd" type="button" aria-label="Next screen"></button></div></div>
+</section>
+<footer>Screens show the current build of Mora Studio, and are updated as the app grows.</footer>
+</main>
+<script>
+// tabs: one area at a time (the address keeps which, so links still work)
+document.documentElement.classList.add("js");
+const areas = [...document.querySelectorAll("section[data-area]")];
+const tabs = [...document.querySelectorAll("nav a")];
+var openArea = function (id, scroll) {
+  if (!areas.some((a) => a.id === id)) id = areas[0].id;
+  for (const a of areas) a.hidden = a.id !== id;
+  for (const t of tabs) {
+    const on = t.hash === "#" + id;
+    t.setAttribute("aria-current", on);
+    if (on) t.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
+  if (scroll) document.querySelector("nav").scrollIntoView({ behavior: "smooth" });
+  else if (!location.hash) scrollTo(0, 0);
+}
+for (const a of document.querySelectorAll('nav a, a.next')) {
+  a.addEventListener("click", (e) => {
+    e.preventDefault();
+    history.replaceState(null, "", a.hash);
+    openArea(a.hash.slice(1), a.classList.contains("next"));
+  });
+}
+openArea(location.hash.slice(1), !!location.hash);
+// no saving pictures or recordings with a long press or right click
+for (const st of document.querySelectorAll(".stage")) st.addEventListener("contextmenu", (e) => e.preventDefault());
+// players: each area's screens play in turn (a still for a few seconds, a
+// recording to its end), then the tour moves on to the next area by
+// itself, while the tour is on screen. Tap a side to step, hover to pause.
+const STILL = 5000;
+let current = null;
+function player(area) {
+  const slides = [...area.querySelectorAll(".slide")], bars = [...area.querySelectorAll(".bars i")];
+  let i = 0, t0 = 0, spent = 0, paused = false, raf = 0;
+  const media = () => slides[i].querySelector("video");
+  // a recording still loading gets a moment longer before it's skipped
+  const length = () => { const v = media(); return v && v.duration ? v.duration * 1000 : v ? STILL * 2 : STILL; };
+  function show(n) {
+    const v = media();
+    if (v) v.pause();
+    i = (n + slides.length) % slides.length;
+    slides.forEach((s, k) => (s.hidden = k !== i));
+    bars.forEach((b, k) => (b.style.width = k < i ? "100%" : "0"));
+    spent = 0;
+    t0 = performance.now();
+    const nv = media();
+    if (nv) {
+      if (!nv.src && !nv.dataset.loading) {
+        nv.dataset.loading = 1;
+        fetch(nv.dataset.src).then((r) => r.ok ? r.blob() : Promise.reject())
+          .then((b) => { nv.src = URL.createObjectURL(b); if (media() === nv && !paused) nv.play().catch(() => {}); })
+          .catch(() => {});
+      } else if (nv.src) { nv.currentTime = 0; if (!paused) nv.play().catch(() => {}); }
+    }
+  }
+  function tick(now) {
+    if (!paused) {
+      const v = media();
+      const done = v && v.duration ? v.currentTime * 1000 : spent + (now - t0);
+      bars[i].style.width = Math.min(100, (done / length()) * 100) + "%";
+      if (done >= length() - 30 || (v && v.ended)) {
+        if (i + 1 < slides.length) show(i + 1);
+        else return nextArea(area);
+      }
+    }
+    raf = requestAnimationFrame(tick);
+  }
+  return {
+    start() { paused = false; show(0); cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); },
+    stop() { cancelAnimationFrame(raf); const v = media(); if (v) v.pause(); },
+    pause(p) {
+      if (p === paused) return;
+      const now = performance.now();
+      if (p) spent += now - t0; else t0 = now;
+      paused = p;
+      const v = media();
+      if (v) p ? v.pause() : v.play().catch(() => {});
+    },
+    step(d) { show(i + d); },
+  };
+}
+const players = new Map(areas.map((a) => [a, player(a)]));
+function play(area) {
+  if (current) players.get(current).stop();
+  current = area;
+  players.get(area).start();
+}
+function nextArea(area) {
+  const next = areas[(areas.indexOf(area) + 1) % areas.length];
+  history.replaceState(null, "", "#" + next.id);
+  openArea(next.id, false);
+}
+const _open = openArea;
+openArea = (id, scroll) => { _open(id, scroll); const a = areas.find((x) => !x.hidden); if (visible) play(a); };
+let visible = false;
+new IntersectionObserver(([e]) => {
+  visible = e.isIntersecting;
+  const a = areas.find((x) => !x.hidden);
+  if (visible) { if (current !== a) play(a); else players.get(a).pause(false); }
+  else if (current) players.get(current).pause(true);
+}, { threshold: 0.35 }).observe(document.querySelector("main"));
+for (const a of areas) {
+  const p = players.get(a);
+  a.querySelector(".back").onclick = () => p.step(-1);
+  a.querySelector(".fwd").onclick = () => p.step(1);
+  const stage = a.querySelector(".stage");
+  stage.addEventListener("mouseenter", () => p.pause(true));
+  stage.addEventListener("mouseleave", () => p.pause(false));
+}
+document.addEventListener("visibilitychange", () => current && players.get(current).pause(document.hidden));
+</script>
+
+</body>
+</html>
